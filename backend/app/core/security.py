@@ -1,5 +1,6 @@
 import hashlib
 from datetime import datetime, timedelta
+from typing import Optional
 
 import jwt
 
@@ -14,7 +15,7 @@ def verify_password(password: str, hashed_password: str) -> bool:
     return hash_password(password) == hashed_password
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=get_access_token_expire_minutes()))
     to_encode.update({"exp": expire})

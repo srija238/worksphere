@@ -4,7 +4,6 @@ DEFAULT_DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "postgresql://workshpere:change_me@localhost:5432/workshpere_DB",
 )
-DEFAULT_JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "replace-with-a-strong-random-secret")
 DEFAULT_JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
@@ -14,7 +13,10 @@ def get_database_url() -> str:
 
 
 def get_jwt_secret_key() -> str:
-    return os.getenv("JWT_SECRET_KEY", DEFAULT_JWT_SECRET_KEY)
+    secret_key = os.getenv("JWT_SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError("JWT_SECRET_KEY environment variable is required")
+    return secret_key
 
 
 def get_jwt_algorithm() -> str:

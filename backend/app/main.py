@@ -8,7 +8,12 @@ import app.modules.users.model  # noqa: F401
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(
+    title="WorkSphere API",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
