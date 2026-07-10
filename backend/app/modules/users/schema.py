@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -9,10 +11,11 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    is_active: bool = True
 
 
 class UserRead(UserBase):
     id: int
-    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
     model_config = {"from_attributes": True}

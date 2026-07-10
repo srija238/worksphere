@@ -2,7 +2,7 @@ import os
 
 DEFAULT_DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://workshpere:change_me@localhost:5432/workshpere_DB",
+    "postgresql://worksphere:change_me@localhost:5433/worksphere_DB",
 )
 DEFAULT_JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
@@ -28,6 +28,6 @@ def get_access_token_expire_minutes() -> int:
 
 
 DATABASE_URL = get_database_url()
-JWT_SECRET_KEY = get_jwt_secret_key()
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 JWT_ALGORITHM = get_jwt_algorithm()
 ACCESS_TOKEN_EXPIRE_MINUTES = get_access_token_expire_minutes()
