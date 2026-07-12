@@ -1,5 +1,7 @@
 from fastapi import HTTPException, status
 
+from app.core.enums import Role
+
 
 def require_role(user, allowed_roles: set[str]) -> None:
     if user.role not in allowed_roles:
@@ -7,4 +9,4 @@ def require_role(user, allowed_roles: set[str]) -> None:
 
 
 def require_manager_or_admin(user) -> None:
-    require_role(user, {"admin", "manager"})
+    require_role(user, {Role.ADMIN, Role.MANAGER})

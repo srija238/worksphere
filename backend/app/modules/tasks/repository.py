@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from app.core.enums import Priority, WorkitemStatus
 from app.modules.tasks.model import Task
 
 
@@ -10,6 +11,11 @@ def get_all_tasks(
     assignee_id: int = None,
     status: str = None,
     priority: str = None,
+    search: str = None,
+    sort_by: str = "id",
+    sort_order: str = "asc",
+    limit: int = 50,
+    offset: int = 0,
 ):
     query = db.query(Task)
     if project_id is not None:
@@ -20,7 +26,24 @@ def get_all_tasks(
         query = query.filter(Task.status == status)
     if priority is not None:
         query = query.filter(Task.priority == priority)
-    return query.all()
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(Task.title.ilike(search_pattern) | Task.description.ilike(search_pattern))
+
+    sort_columns = {
+        "id": Task.id,
+        "title": Task.title,
+        "status": Task.status,
+        "priority": Task.priority,
+        "due_date": Task.due_date,
+        "created_at": Task.created_at,
+        "updated_at": Task.updated_at,
+    }
+    sort_column = sort_columns.get(sort_by, Task.id)
+    if sort_order == "desc":
+        sort_column = sort_column.desc()
+
+    return query.order_by(sort_column).offset(offset).limit(limit).all()
 
 
 def get_task_by_id(db: Session, task_id: int):
@@ -34,8 +57,8 @@ def create_task(
     project_id: int,
     description: str = None,
     assignee_id: int = None,
-    status: str = "todo",
-    priority: str = "medium",
+    status: str = WorkitemStatus.TODO.value,
+    priority: str = Priority.MEDIUM.value,
     due_date=None,
 ) -> Task:
     task_obj = Task(

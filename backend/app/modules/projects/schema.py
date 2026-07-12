@@ -3,11 +3,13 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from app.core.enums import ProjectStatus
+
 
 class ProjectBase(BaseModel):
     name: str
     description: Optional[str] = None
-    status: str = "planned"
+    status: ProjectStatus = ProjectStatus.PLANNED
     owner_id: int
     start_date: Optional[date] = None
     end_date: Optional[date] = None
@@ -20,7 +22,7 @@ class ProjectCreate(ProjectBase):
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
-    status: Optional[str] = None
+    status: Optional[ProjectStatus] = None
     owner_id: Optional[int] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None

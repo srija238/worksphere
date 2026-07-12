@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
+from app.core.enums import ProjectStatus
 from app.modules.projects.schema import ProjectCreate, ProjectRead, ProjectUpdate
 from app.modules.projects.service import create_project as create_project_service
 from app.modules.projects.service import delete_project as delete_project_service
@@ -16,11 +17,25 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 @router.get("", response_model=list[ProjectRead])
 def get_projects(
     owner_id: int = None,
-    status: str = None,
+    status: ProjectStatus = None,
+    search: str = None,
+    sort_by: str = "id",
+    sort_order: str = "asc",
+    limit: int = 50,
+    offset: int = 0,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    return list_projects_service(db, owner_id=owner_id, status=status)
+    return list_projects_service(
+        db,
+        owner_id=owner_id,
+        status=status,
+        search=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/{project_id}", response_model=ProjectRead)

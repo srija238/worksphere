@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
+from app.core.enums import Priority, WorkitemStatus
 from app.modules.tasks.schema import TaskCreate, TaskRead, TaskUpdate
 from app.modules.tasks.service import create_task as create_task_service
 from app.modules.tasks.service import delete_task as delete_task_service
@@ -18,8 +19,13 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 def get_tasks(
     project_id: int = None,
     assignee_id: int = None,
-    status: str = None,
-    priority: str = None,
+    status: WorkitemStatus = None,
+    priority: Priority = None,
+    search: str = None,
+    sort_by: str = "id",
+    sort_order: str = "asc",
+    limit: int = 50,
+    offset: int = 0,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -29,6 +35,11 @@ def get_tasks(
         assignee_id=assignee_id,
         status=status,
         priority=priority,
+        search=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        limit=limit,
+        offset=offset,
     )
 
 

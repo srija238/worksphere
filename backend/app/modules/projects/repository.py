@@ -1,15 +1,43 @@
 from sqlalchemy.orm import Session
 
+from app.core.enums import ProjectStatus
 from app.modules.projects.model import Project
 
 
-def get_all_projects(db: Session, *, owner_id: int = None, status: str = None):
+def get_all_projects(
+    db: Session,
+    *,
+    owner_id: int = None,
+    status: str = None,
+    search: str = None,
+    sort_by: str = "id",
+    sort_order: str = "asc",
+    limit: int = 50,
+    offset: int = 0,
+):
     query = db.query(Project)
     if owner_id is not None:
         query = query.filter(Project.owner_id == owner_id)
     if status is not None:
         query = query.filter(Project.status == status)
-    return query.all()
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(Project.name.ilike(search_pattern) | Project.description.ilike(search_pattern))
+
+    sort_columns = {
+        "id": Project.id,
+        "name": Project.name,
+        "status": Project.status,
+        "start_date": Project.start_date,
+        "end_date": Project.end_date,
+        "created_at": Project.created_at,
+        "updated_at": Project.updated_at,
+    }
+    sort_column = sort_columns.get(sort_by, Project.id)
+    if sort_order == "desc":
+        sort_column = sort_column.desc()
+
+    return query.order_by(sort_column).offset(offset).limit(limit).all()
 
 
 def get_project_by_id(db: Session, project_id: int):
@@ -22,7 +50,7 @@ def create_project(
     name: str,
     owner_id: int,
     description: str = None,
-    status: str = "planned",
+    status: str = ProjectStatus.PLANNED.value,
     start_date=None,
     end_date=None,
 ) -> Project:

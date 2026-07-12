@@ -2,10 +2,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.database import Base, engine
+from app.modules.activity.router import router as activity_router
+from app.modules.attachments.router import router as attachments_router
 from app.modules.auth.router import router as auth_router
+from app.modules.comments.router import router as comments_router
+from app.modules.dashboard.router import router as dashboard_router
+from app.modules.notifications.router import router as notifications_router
 from app.modules.projects.router import router as projects_router
 from app.modules.tasks.router import router as tasks_router
 from app.modules.users.router import router as users_router
+import app.modules.activity.model  # noqa: F401
+import app.modules.attachments.model  # noqa: F401
+import app.modules.comments.model  # noqa: F401
+import app.modules.notifications.model  # noqa: F401
 import app.modules.projects.model  # noqa: F401
 import app.modules.tasks.model  # noqa: F401
 import app.modules.users.model  # noqa: F401
@@ -33,6 +42,11 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(projects_router)
 app.include_router(tasks_router)
+app.include_router(comments_router)
+app.include_router(attachments_router)
+app.include_router(activity_router)
+app.include_router(notifications_router)
+app.include_router(dashboard_router)
 
 
 @app.get("/")

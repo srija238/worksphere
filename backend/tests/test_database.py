@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 import unittest
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -86,7 +87,7 @@ class DatabaseConfigTests(unittest.TestCase):
                         "name": "Vikram Mehta",
                         "email": "vikram@example.com",
                         "password": "manager@123",
-                        "role": "manager",
+                        "role": "admin",
                     },
                 )
                 developer_response = client.post(
@@ -119,6 +120,7 @@ class DatabaseConfigTests(unittest.TestCase):
                         "description": "Project management platform.",
                         "status": "active",
                         "owner_id": manager["id"],
+                        "end_date": (date.today() + timedelta(days=5)).isoformat(),
                     },
                     headers=headers,
                 )
@@ -142,6 +144,7 @@ class DatabaseConfigTests(unittest.TestCase):
                         "assignee_id": developer["id"],
                         "status": "todo",
                         "priority": "high",
+                        "due_date": (date.today() - timedelta(days=1)).isoformat(),
                     },
                     headers=headers,
                 )
@@ -183,6 +186,87 @@ class DatabaseConfigTests(unittest.TestCase):
                 self.assertEqual(len(my_tasks_response.json()), 1)
                 self.assertEqual(my_tasks_response.json()[0]["id"], task["id"])
 
+                comment_response = client.post(
+                    f"/tasks/{task['id']}/comments",
+                    json={"message": "Starting implementation now."},
+                    headers=developer_headers,
+                )
+                self.assertEqual(comment_response.status_code, 200)
+                self.assertEqual(comment_response.json()["task_id"], task["id"])
+
+                attachment_response = client.post(
+                    f"/tasks/{task['id']}/attachments",
+                    json={
+                        "file_name": "api-notes.md",
+                        "file_url": "https://example.com/api-notes.md",
+                        "content_type": "text/markdown",
+                    },
+                    headers=developer_headers,
+                )
+                self.assertEqual(attachment_response.status_code, 200)
+                self.assertEqual(attachment_response.json()["task_id"], task["id"])
+
+                notification_response = client.post(
+                    "/notifications",
+                    json={
+                        "user_id": developer["id"],
+                        "title": "Task updated",
+                        "message": "Build tasks API moved to in progress.",
+                    },
+                    headers=headers,
+                )
+                self.assertEqual(notification_response.status_code, 200)
+
+                notifications_response = client.get("/notifications?is_read=false", headers=developer_headers)
+                self.assertEqual(notifications_response.status_code, 200)
+                self.assertEqual(len(notifications_response.json()), 1)
+
+                read_notification_response = client.patch(
+                    f"/notifications/{notification_response.json()['id']}/read",
+                    headers=developer_headers,
+                )
+                self.assertEqual(read_notification_response.status_code, 200)
+                self.assertTrue(read_notification_response.json()["is_read"])
+
+                dashboard_response = client.get("/dashboard", headers=headers)
+                self.assertEqual(dashboard_response.status_code, 200)
+                dashboard = dashboard_response.json()
+                self.assertEqual(dashboard["role"], "ADMIN")
+                self.assertEqual(dashboard["user"]["name"], "Vikram Mehta")
+                self.assertEqual(dashboard["dashboard"]["summary"]["total_projects"], 1)
+                self.assertEqual(dashboard["dashboard"]["summary"]["total_users"], 2)
+                self.assertEqual(dashboard["dashboard"]["summary"]["total_workitems"], 1)
+                self.assertEqual(dashboard["dashboard"]["summary"]["active_workitems"], 1)
+                self.assertEqual(dashboard["dashboard"]["summary"]["overdue_workitems"], 1)
+                self.assertEqual(dashboard["dashboard"]["projects_overview"][0]["progress"], 0)
+                self.assertEqual(dashboard["dashboard"]["workitem_status"]["total"], 1)
+                self.assertEqual(
+                    dashboard["dashboard"]["upcoming_project_deadlines"][0]["days_left"], 5
+                )
+                self.assertGreaterEqual(len(dashboard["dashboard"]["recent_activity"]), 1)
+
+                non_admin_dashboard_response = client.get("/dashboard", headers=developer_headers)
+                self.assertEqual(non_admin_dashboard_response.status_code, 403)
+
+                obsolete_dashboard_response = client.get("/dashboard/summary", headers=headers)
+                self.assertEqual(obsolete_dashboard_response.status_code, 404)
+
+                invalid_status_response = client.patch(
+                    f"/tasks/{task['id']}",
+                    json={"status": "finished"},
+                    headers=headers,
+                )
+                self.assertEqual(invalid_status_response.status_code, 422)
+
+                invalid_priority_filter_response = client.get(
+                    "/tasks?priority=urgent", headers=headers
+                )
+                self.assertEqual(invalid_priority_filter_response.status_code, 422)
+
+                activity_response = client.get(f"/activity?task_id={task['id']}", headers=headers)
+                self.assertEqual(activity_response.status_code, 200)
+                self.assertGreaterEqual(len(activity_response.json()), 1)
+
     def test_core_tables_are_created_with_relationship_columns(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             db_path = Path(temp_dir) / "test.db"
@@ -193,7 +277,17 @@ class DatabaseConfigTests(unittest.TestCase):
 
             inspector = inspect(database.engine)
 
-            self.assertEqual({"users", "projects", "tasks"}, set(inspector.get_table_names()))
+            self.assertTrue(
+                {
+                    "users",
+                    "projects",
+                    "tasks",
+                    "comments",
+                    "attachments",
+                    "activity_logs",
+                    "notifications",
+                }.issubset(set(inspector.get_table_names()))
+            )
 
             users_columns = {column["name"] for column in inspector.get_columns("users")}
             self.assertTrue(

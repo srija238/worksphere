@@ -2,6 +2,7 @@ from sqlalchemy import Column, DateTime, Integer, String, func
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+from app.core.enums import Role
 
 
 class User(Base):
@@ -11,7 +12,7 @@ class User(Base):
     name = Column(String, nullable=False, index=True)
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
-    role = Column(String, default="developer", nullable=False)
+    role = Column(String, default=Role.DEVELOPER.value, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),
@@ -22,3 +23,7 @@ class User(Base):
 
     owned_projects = relationship("Project", back_populates="owner", foreign_keys="Project.owner_id")
     assigned_tasks = relationship("Task", back_populates="assignee", foreign_keys="Task.assignee_id")
+    comments = relationship("Comment", back_populates="user")
+    attachments = relationship("Attachment", back_populates="uploaded_by")
+    activity_logs = relationship("ActivityLog", back_populates="actor")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
