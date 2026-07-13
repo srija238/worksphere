@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.core.enums import ProjectStatus
 from app.modules.projects.model import Project
@@ -12,10 +12,10 @@ def get_all_projects(
     search: str = None,
     sort_by: str = "id",
     sort_order: str = "asc",
-    limit: int = 50,
+    limit: int = None,
     offset: int = 0,
 ):
-    query = db.query(Project)
+    query = db.query(Project).options(joinedload(Project.owner), selectinload(Project.tasks))
     if owner_id is not None:
         query = query.filter(Project.owner_id == owner_id)
     if status is not None:
@@ -37,11 +37,19 @@ def get_all_projects(
     if sort_order == "desc":
         sort_column = sort_column.desc()
 
-    return query.order_by(sort_column).offset(offset).limit(limit).all()
+    query = query.order_by(sort_column).offset(offset)
+    if limit is not None:
+        query = query.limit(limit)
+    return query.all()
 
 
 def get_project_by_id(db: Session, project_id: int):
-    return db.query(Project).filter(Project.id == project_id).first()
+    return (
+        db.query(Project)
+        .options(joinedload(Project.owner), selectinload(Project.tasks))
+        .filter(Project.id == project_id)
+        .first()
+    )
 
 
 def create_project(

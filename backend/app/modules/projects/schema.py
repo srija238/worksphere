@@ -30,6 +30,8 @@ class ProjectUpdate(BaseModel):
 
 class ProjectRead(ProjectBase):
     id: int
+    manager_name: str
+    progress: int
     created_at: datetime
     updated_at: datetime
 

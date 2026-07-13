@@ -163,6 +163,10 @@ class DatabaseConfigTests(unittest.TestCase):
                 self.assertEqual(filtered_projects_response.status_code, 200)
                 self.assertEqual(len(filtered_projects_response.json()), 1)
                 self.assertEqual(filtered_projects_response.json()[0]["id"], project["id"])
+                self.assertEqual(
+                    filtered_projects_response.json()[0]["manager_name"], "Vikram Mehta"
+                )
+                self.assertEqual(filtered_projects_response.json()[0]["progress"], 0)
 
                 filtered_tasks_response = client.get(
                     f"/tasks?project_id={project['id']}&status=in_progress",

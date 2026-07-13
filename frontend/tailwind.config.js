@@ -13,7 +13,19 @@ export default {
         },
       },
       animation: {
-        "spin": "spin 1s linear infinite",
+        "fade-in-up": "fade-in-up 0.5s ease-out",
+      },
+      keyframes: {
+        "fade-in-up": {
+          from: {
+            opacity: "0",
+            transform: "translateY(10px)",
+          },
+          to: {
+            opacity: "1",
+            transform: "translateY(0)",
+          },
+        },
       },
     },
   },

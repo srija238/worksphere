@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Checkbox from '../../components/ui/Checkbox';
-import Card from '../../components/ui/Card';
+import { Card } from '../../components/Card';
 import { login } from './authApi';
 import { validateLoginForm, hasValidationErrors, ValidationErrors } from './validation';
 import { FeatureCard } from './types';
-import '../../../src/styles/login-glow.css';
 
 interface FeatureCardData {
   id: string;
@@ -163,32 +162,6 @@ const LoginPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Glowing curved line */}
-          {/* <div className="my-12 glow-line">
-            <svg
-              width="100%"
-              height="60"
-              viewBox="0 0 400 60"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-full max-w-md"
-            >
-              <path
-                d="M0 30 Q 100 10, 200 30 T 400 30"
-                stroke="url(#gradientOrange)"
-                strokeWidth="3"
-                fill="none"
-                strokeLinecap="round"
-              />
-              <defs>
-                <linearGradient id="gradientOrange" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#FF6B35" stopOpacity="0.3" />
-                  <stop offset="50%" stopColor="#FF6B35" stopOpacity="1" />
-                  <stop offset="100%" stopColor="#FF6B35" stopOpacity="0.3" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div> */}
         </div>
 
         {/* Feature cards */}
@@ -196,11 +169,14 @@ const LoginPage: React.FC = () => {
           {featureCards.map((card) => (
             <Card
               key={card.id}
-              icon={card.icon}
-              title={card.title}
-              description={card.description}
-              className="animate-fade-in-up"
-            />
+              className="flex animate-fade-in-up items-start gap-4 rounded-lg border border-gray-800 bg-gray-900/50 p-6 transition-colors duration-200 hover:border-gray-700"
+            >
+              <div className="shrink-0 text-orange-500">{card.icon}</div>
+              <div className="flex-1">
+                <h3 className="mb-1 text-lg font-semibold text-white">{card.title}</h3>
+                <p className="text-sm text-gray-400">{card.description}</p>
+              </div>
+            </Card>
           ))}
         </div>
       </div>

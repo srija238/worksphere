@@ -19,7 +19,7 @@ def list_projects(
     search: str = None,
     sort_by: str = "id",
     sort_order: str = "asc",
-    limit: int = 50,
+    limit: int = None,
     offset: int = 0,
 ):
     return get_all_projects(

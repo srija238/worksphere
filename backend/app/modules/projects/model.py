@@ -2,7 +2,7 @@ from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
-from app.core.enums import ProjectStatus
+from app.core.enums import ProjectStatus, WorkitemStatus
 
 
 class Project(Base):
@@ -26,3 +26,15 @@ class Project(Base):
     owner = relationship("User", back_populates="owned_projects", foreign_keys=[owner_id])
     tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
     activity_logs = relationship("ActivityLog", back_populates="project")
+
+    @property
+    def manager_name(self) -> str:
+        return self.owner.name if self.owner else ""
+
+    @property
+    def progress(self) -> int:
+        total_tasks = len(self.tasks)
+        if total_tasks == 0:
+            return 0
+        completed_tasks = sum(task.status == WorkitemStatus.DONE for task in self.tasks)
+        return round((completed_tasks / total_tasks) * 100)
